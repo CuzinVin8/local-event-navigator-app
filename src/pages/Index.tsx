@@ -1,12 +1,14 @@
-
 import React, { useState, useMemo } from 'react';
-import { Search, MapPin, Star, DollarSign, ChevronLeft, ChevronRight, Moon, Sun } from 'lucide-react';
+import { Search, MapPin, Star, DollarSign, ChevronLeft, ChevronRight, Moon, Sun, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import EventCard from '@/components/EventCard';
 import FilterSection from '@/components/FilterSection';
 
@@ -139,6 +141,8 @@ const Index = () => {
   const [weekOffset, setWeekOffset] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [activeDay, setActiveDay] = useState("friday");
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const weekendDates = getWeekendDates(weekOffset);
 
@@ -215,6 +219,14 @@ const Index = () => {
     return themes[day as keyof typeof themes];
   };
 
+  const handleAuthAction = () => {
+    if (user) {
+      signOut();
+    } else {
+      navigate('/auth');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background transition-colors">
       {/* Header */}
@@ -228,11 +240,36 @@ const Index = () => {
               <p className="text-muted-foreground text-lg">Discover amazing events happening this weekend</p>
             </div>
             
-            {/* Dark mode toggle */}
-            <div className="flex items-center space-x-2">
-              <Sun className="h-4 w-4" />
-              <Switch checked={isDarkMode} onCheckedChange={setIsDarkMode} />
-              <Moon className="h-4 w-4" />
+            {/* Auth and Dark mode controls */}
+            <div className="flex items-center space-x-4">
+              {/* User menu */}
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                      <User className="h-4 w-4" />
+                      <span className="hidden md:inline">{user.email?.split('@')[0]}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={signOut}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
+                  Sign In
+                </Button>
+              )}
+              
+              {/* Dark mode toggle */}
+              <div className="flex items-center space-x-2">
+                <Sun className="h-4 w-4" />
+                <Switch checked={isDarkMode} onCheckedChange={setIsDarkMode} />
+                <Moon className="h-4 w-4" />
+              </div>
             </div>
           </div>
 
